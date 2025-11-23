@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - AI Internship Matching{% endblock %}
+
+{% block content %}
+
+<!-- Aurora Background -->
+<div class="aurora-background">
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="aurora aurora-3"></div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Student Profile</h3>
+                <a href="{{ url_for('main.complete_student_profile') }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit Profile
+                </a>
+            </div>
+            <div class="card-body">
+
+                <!-- Profile Completeness Progress -->
+                <div class="mb-3">
+                    <div class="progress" style="height: 12px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ completeness_score }}%"></div>
+                    </div>
+                    <small class="text-muted">{{ completeness_score }}% Complete</small>
+                </div>
+
+                {% macro display_field(label, value, missing_fields) %}
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <strong>{{ label }}:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                            {% if value %}
+                                {% if label == 'Year of Study' and value %}
+                                    Year {{ value }}
+                                {% elif label == 'CGPA/Percentage' and value %}
+                                    {{ "%.2f"|format(value) }}
+                                {% elif label == 'Technical Skills' or label == 'Soft Skills' or label == 'Sector Interests' or label == 'Preferred Locations' %}
+                                    {% if value %}
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for item in value.split(',') %}
+                                                <span class="badge bg-primary">{{ item.strip() }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted fst-italic">Not provided - click Edit Profile to add</span>
+                                    {% endif %}
+                                {% elif label == 'Profile Picture' %}
+                                    {% if student.profile_picture %}
+                                        <img src="{{ student.profile_picture }}" alt="Profile Picture" class="rounded-circle" style="width: 50px; height: 50px;">
+                                    {% else %}
+                                        <span class="text-muted fst-italic">No profile picture</span>
+                                    {% endif %}
+                                {% else %}
+                                    {{ value }}
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted fst-italic">Not provided - click Edit Profile to add</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endmacro %}
+
+                <!-- Basic Information -->
+                <h5 class="mb-2 text-info">Basic Information</h5>
+                {{ display_field('Profile Picture', student.profile_picture, missing_fields) }}
+                {{ display_field('Full Name', student.name, missing_fields) }}
+                {{ display_field('Email', student.email, missing_fields) }}
+                {{ display_field('Phone Number', student.phone, missing_fields) }}
+
+                <!-- Academic Information -->
+                <h5 class="mb-2 text-info">Academic Information</h5>
+                {{ display_field('Institution', student.institution, missing_fields) }}
+                {{ display_field('Course/Degree', student.course, missing_fields) }}
+                {{ display_field('Year of Study', student.year_of_study, missing_fields) }}
+                {{ display_field('CGPA/Percentage', student.cgpa, missing_fields) }}
+
+                <!-- Skills and Interests -->
+                <h5 class="mb-2 text-info">Skills and Interests</h5>
+                {{ display_field('Technical Skills', student.technical_skills, missing_fields) }}
+                {{ display_field('Soft Skills', student.soft_skills, missing_fields) }}
+                {{ display_field('Sector Interests', student.sector_interests, missing_fields) }}
+
+                <!-- Location Preferences -->
+                <h5 class="mb-2 text-info">Location Preferences</h5>
+                {{ display_field('Current Location', student.current_location, missing_fields) }}
+                {{ display_field('Preferred Locations', student.preferred_locations, missing_fields) }}
+
+                <!-- Background Information -->
+                <h5 class="mb-2 text-info">Background Information</h5>
+                {{ display_field('Social Category', student.social_category, missing_fields) }}
+                {{ display_field('District Type', student.district_type, missing_fields) }}
+                {{ display_field('Home District', student.home_district, missing_fields) }}
+
+                <!-- Previous Participation -->
+                <h5 class="mb-2 text-info">Previous Participation</h5>
+                {{ display_field('Number of Previous Internships', student.previous_internships, missing_fields) }}
+                {{ display_field('PM Scheme Participant', 'Yes' if student.pm_scheme_participant else 'No', missing_fields) }}
+
+                {% if missing_fields %}
+                <div class="mt-3">
+                    <h6 class="small text-warning">Missing Information:</h6>
+                    <ul class="small text-muted mb-0">
+                        {% for field in missing_fields %}
+                            <li>{{ field }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Match Styles with complete_student_profile.html -->
+<style>
+/* Background and text */
+body {
+    background: linear-gradient(135deg, #dbeafe 0%, #f8fafc 100%) !important;
+    color: #1f2937;
+}
+
+/* Navbar gradient */
+.navbar {
+    background: linear-gradient(90deg, #75b8f7, #6ac0f1) !important;
+}
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar .navbar-toggler-icon {
+    color: white !important;
+}
+.navbar .nav-link:hover {
+    color: #e0f2fe !important;
+}
+
+/* Labels and placeholders */
+label,
+strong {
+    color: #374151 !important;
+    font-weight: 500;
+}
+::placeholder {
+    color: #6b7280 !important;
+    opacity: 1;
+}
+
+/* Card */
+.card {
+    background-color: rgba(255,255,255,0.9) !important;
+    border: 1px solid #ddd !important;
+}
+
+/* Badges */
+.badge {
+    background-color: #6ac0f1;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+/* Aurora Background (light style) */
+.aurora-background {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+    background: transparent;
+    overflow: hidden;
+}
+.aurora {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.25;
+}
+.aurora-1 {
+    width: 50vw; height: 50vw;
+    background-color: #93c5fd;
+    top: -25vw; left: -25vw;
+    animation: move 15s infinite alternate ease-in-out;
+}
+.aurora-2 {
+    width: 60vw; height: 60vw;
+    background-color: #c4b5fd;
+    bottom: -30vw; right: -30vw;
+    animation: move 20s infinite alternate-reverse ease-in-out;
+}
+.aurora-3 {
+    width: 40vw; height: 40vw;
+    background-color: #a7f3d0;
+    bottom: 20vh; left: -20vw;
+    animation: move 18s infinite alternate ease-in-out;
+}
+@keyframes move {
+    from { transform: translate(0, 0) rotate(0deg); }
+    to { transform: translate(100px, 50px) rotate(30deg); }
+}
+/* Fix muted/faint text visibility */
+.text-muted,
+.fst-italic,
+ul.text-muted > li {
+    color: #374151 !important; /* dark gray for better readability */
+}
+
+.text-muted,
+.fst-italic,
+.text-muted.fst-italic,
+span.text-muted.fst-italic,
+small.text-muted,
+.progress + small.text-muted {
+    color: #374151 !important;  /* dark gray */
+    opacity: 1 !important;
+    font-style: italic !important;
+}
+.progress {
+    background-color: #cccfd3 !important; /* Light gray background */
+    border-radius: 0.375rem !important;   /* Rounded corners */
+    height: 12px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: 0.375rem !important;   /* Match container */
+}
+</style>
+
+{% endblock %}
