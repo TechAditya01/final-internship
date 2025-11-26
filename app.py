@@ -1,5 +1,8 @@
 import os
 import logging
+from dotenv import load_dotenv
+import pathlib
+from sqlalchemy import text
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, migrate
@@ -10,6 +13,17 @@ logging.basicConfig(level=logging.DEBUG)
 def create_app():
     # Create the app
     app = Flask(__name__)
+    # Load environment variables from workspace .env (if present)
+    try:
+        # .env is located at repository root (one level above this package)
+        repo_root = pathlib.Path(__file__).resolve().parents[1]
+        dotenv_path = repo_root / '.env'
+        if dotenv_path.exists():
+            load_dotenv(dotenv_path=str(dotenv_path))
+            app.logger.debug(f"Loaded environment variables from {dotenv_path}")
+    except Exception as _:
+        # Non-fatal if dotenv is missing or fails
+        pass
     app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
@@ -47,8 +61,10 @@ def create_app():
             inspector = db.engine
             # Only run lightweight checks for SQLite / local DBs
             if inspector.dialect.name == 'sqlite':
-                res = db.engine.execute("PRAGMA table_info('applications')")
-                existing_cols = [row[1] for row in res.fetchall()]
+                # Use a Connection and SQLAlchemy text() for compatibility with SQLAlchemy 1.4+/2.0
+                with db.engine.connect() as conn:
+                    res = conn.execute(text("PRAGMA table_info('applications')"))
+                    existing_cols = [row[1] for row in res.fetchall()]
 
                 # Columns we expect on Application model that older DBs may miss
                 expected = {
@@ -60,7 +76,9 @@ def create_app():
                 for col, col_type in expected.items():
                     if col not in existing_cols:
                         try:
-                            db.engine.execute(f"ALTER TABLE applications ADD COLUMN {col} {col_type}")
+                            # Use a transaction for schema changes
+                            with db.engine.begin() as conn:
+                                conn.execute(text(f"ALTER TABLE applications ADD COLUMN {col} {col_type}"))
                             app.logger.info(f"Added missing column '{col}' to applications table")
                         except Exception as alter_e:
                             app.logger.error(f"Failed to add column {col}: {alter_e}")
