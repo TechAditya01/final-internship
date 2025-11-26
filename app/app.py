@@ -5,7 +5,7 @@ import pathlib
 from sqlalchemy import text
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
-from extensions import db, migrate
+from app.extensions import db, migrate
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -45,7 +45,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Import models to register them with SQLAlchemy
-    from models import Student, Department, Admin, Internship, Match, Application
+    from app.models import Student, Department, Admin, Internship, Match, Application
 
     # Import and register blueprint
     from app.routes import bp as main_bp
