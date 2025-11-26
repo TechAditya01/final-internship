@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
-from extensions import db
-from models import Student, Department, Admin, Internship, Match, Application
-from matching_engine import InternshipMatchingEngine
+from app.extensions import db
+from app.models import Student, Department, Admin, Internship, Match, Application
+from app.matching_engine import InternshipMatchingEngine
 # Import OAuth helpers lazily inside the routes to avoid hard dependency at startup
 # (google auth libraries like `cryptography` may not be available in some dev envs)
 from datetime import datetime
