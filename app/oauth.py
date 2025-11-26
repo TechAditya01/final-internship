@@ -4,7 +4,6 @@ import logging
 
 def create_google_flow():
     """Create and return a google_auth_oauthlib.flow.Flow configured from env vars.
-
     Returns None if dependencies or configuration are missing.
     """
     try:
@@ -23,7 +22,7 @@ def create_google_flow():
         logging.debug("Google client id/secret not configured in environment")
         return None
 
-    # Allow insecure transport for local development when redirect URI is localhost
+    # Allow insecure transport for local development
     try:
         if redirect_uri.startswith('http://127.0.0.1') or redirect_uri.startswith('http://localhost'):
             os.environ.setdefault('OAUTHLIB_INSECURE_TRANSPORT', '1')
@@ -61,23 +60,30 @@ def get_google_user_info(access_token):
     try:
         import requests
         headers = {'Authorization': f'Bearer {access_token}'}
-        resp = requests.get('https://www.googleapis.com/oauth2/v1/userinfo', params={'alt': 'json'}, headers=headers, timeout=5)
+        resp = requests.get(
+            'https://www.googleapis.com/oauth2/v1/userinfo',
+            params={'alt': 'json'},
+            headers=headers,
+            timeout=5
+        )
         if resp.ok:
             return resp.json()
+
         logging.error(f"Failed to fetch Google user info: {resp.status_code} {resp.text}")
+
     except Exception as e:
         logging.error(f"Error requesting Google user info: {e}")
+
     return None
 
 
 def handle_google_login(user_info, user_type='student'):
     """Create or lookup a user (Student) from Google user_info.
-
     Returns (success: bool, user_obj or None)
     """
     try:
-        from extensions import db
-        from models import Student, Department
+        from app.extensions import db
+        from app.models import Student, Department
     except Exception as e:
         logging.error(f"DB/models import failed in oauth handler: {e}")
         return False, None
@@ -94,22 +100,25 @@ def handle_google_login(user_info, user_type='student'):
     try:
         if user_type == 'student':
             user = None
+            # Query existing user
             if google_id:
                 user = Student.query.filter_by(google_id=google_id).first()
             if not user:
                 user = Student.query.filter_by(email=email).first()
 
             if user:
-                # Update google fields if missing
+                # Update google info if missing
                 updated = False
-                if not user.google_id and google_id:
+                if google_id and not user.google_id:
                     user.google_id = google_id
                     updated = True
                 if picture and not user.profile_picture:
                     user.profile_picture = picture
                     updated = True
+
                 if updated:
                     db.session.commit()
+
                 return True, user
 
             # Create new student
@@ -123,7 +132,7 @@ def handle_google_login(user_info, user_type='student'):
             db.session.commit()
             return True, new_user
 
-        # For departments we currently do not support Google sign-up via UI
+        # Department Google login not yet supported
         if user_type == 'department':
             return False, None
 
