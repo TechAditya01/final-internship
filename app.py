@@ -52,7 +52,7 @@ def create_app():
     app.register_blueprint(main_bp)
 
     # Register Google OAuth routes
-    from oauth_routes import oauth_bp
+    from app.oauth_routes import oauth_bp
     app.register_blueprint(oauth_bp)
 
 
