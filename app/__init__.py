@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="app/templates")
 
     # -------- Load Environment Variables --------
     try:
