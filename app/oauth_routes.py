@@ -18,8 +18,8 @@ def auth_google():
         return redirect(url_for("routes.index") if "routes" in current_app.blueprints else "/")
     return redirect(auth_url)
 
-@oauth_bp.route("/oauth2callback")
-def oauth2callback():
+@oauth_bp.route("/auth/google/callback")
+def google_callback():
     """
     Callback used by Google to return the authorization code.
     We exchange code -> token -> userinfo and save essential session details.
