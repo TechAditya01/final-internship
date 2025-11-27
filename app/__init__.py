@@ -11,14 +11,8 @@ from app.extensions import db, migrate
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-    app = Flask(__name__, template_folder="templates")
->>>>>>> 9b96774 (updated code)
-=======
 def create_app():
     app = Flask(__name__, template_folder="templates")
-=======
-    app = Flask(__name__, template_folder="templates")
->>>>>>> 9b96774 (updated code)
 
     # load .env from repo root if present
     try:
